@@ -1,2 +1,5 @@
 # tools
-web based utility page.
+
+Web based utility page.
+
+developed by [@ludorum](https://steemkr.com/@ludorum)
