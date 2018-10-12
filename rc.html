@@ -149,17 +149,16 @@
                 setTimeout(refresh, 5 * 1e3);
             }
             $(async function() {
-                fetch("./footer.html", { 
-                    "credentials": "include", 
-                    "headers": {}, 
-                    "referrerPolicy": 
-                    "no-referrer-when-downgrade", 
-                    "body": null, 
-                    "method": "GET", 
-                    "mode": 
-                    "no-cors" 
+                let url = './footer.dom';
+                if (location.protocol == 'file:') {
+                    url = 'https://steemkr.github.io/tools/footer.dom';
+                }
+                fetch(url, { 
+                    method: "get", 
+                    mode: "no-cors"
                 }).then(response => {
-                    $(response.body).appendTo('body');
+                    console.log(response.text());
+                    $(response.text()).appendTo('body');
                 })
                 refresh();
             })
