@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SteemKR Tools</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.8.3/superagent.js" integrity="sha256-GrhVjaiD/8xytSGcF2mVrZQf89pfPgwU7IFssndhRoU=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/big.js/5.2.1/big.js" integrity="sha256-PFSAPfdN8WxDI1kfDyA4SNLQFvXAP9zOyzr6eTFTzsQ=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/big-integer/1.6.36/BigInteger.js" integrity="sha256-ASOxDAufOKVUh3CsB7JO2UtQTA75J55y5b+4JvK1CNc=" crossorigin="anonymous"></script>
+        <script src="https://cdn.steemjs.com/lib/latest/steem.min.js"></script>
+        <script>
+            let STEEM_API_URL = 'https://api.steemit.com';
+            const CONST = {};
+
+            CONST.STEEM_100_PERCENT = 10000
+            CONST.STEEM_1_PERCENT = 100
+            CONST.STEEM_REVERSE_AUCTION_WINDOW_SECONDS_HF20 = 900
+            CONST.STEEM_REVERSE_AUCTION_WINDOW_SECONDS_HF6 = 1800
+            CONST.STEEM_VOTE_REGENERATION_SECONDS = 432000
+            CONST.STEEM_VOTING_MANA_REGENERATION_SECONDS = 432000
+            CONST.STEEM_VOTE_DUST_THRESHOLD = 50000000
+            CONST.STEEM_ROOT_POST_PARENT = ''
+
+            CONST.STATE_BYTES_SCALE = 10000
+            CONST.STATE_TRANSACTION_BYTE_SIZE = 174
+            CONST.STATE_TRANSFER_FROM_SAVINGS_BYTE_SIZE = 229
+            CONST.STATE_LIMIT_ORDER_BYTE_SIZE = 1940
+            CONST.RC_DEFAULT_EXEC_COST = 100000
+            CONST.STEEM_RC_REGEN_TIME = 60 * 60 * 24 * 5
+
+            CONST.STATE_OBJECT_SIZE_INFO = {
+                'authority_base_size': 4 * CONST.STATE_BYTES_SCALE,
+                'authority_account_member_size': 18 * CONST.STATE_BYTES_SCALE,
+                'authority_key_member_size': 35 * CONST.STATE_BYTES_SCALE,
+                'account_object_base_size': 480 * CONST.STATE_BYTES_SCALE,
+                'account_authority_object_base_size': 40 * CONST.STATE_BYTES_SCALE,
+                'account_recovery_request_object_base_size': 32 * CONST.STATE_BYTES_SCALE,
+                'comment_object_base_size': 201 * CONST.STATE_BYTES_SCALE,
+                'comment_object_permlink_char_size': 1 * CONST.STATE_BYTES_SCALE,
+                'comment_object_parent_permlink_char_size': 2 * CONST.STATE_BYTES_SCALE,
+                'comment_object_beneficiaries_member_size': 18 * CONST.STATE_BYTES_SCALE,
+                'comment_vote_object_base_size': 47 * CONST.STATE_BYTES_SCALE,
+                'convert_request_object_base_size': 48 * CONST.STATE_BYTES_SCALE,
+                'decline_voting_rights_request_object_base_size': 28 * CONST.STATE_BYTES_SCALE,
+                'escrow_object_base_size': 119 * CONST.STATE_BYTES_SCALE,
+                'limit_order_object_base_size': 76 * CONST.STATE_LIMIT_ORDER_BYTE_SIZE,
+                'savings_withdraw_object_byte_size': 64 * CONST.STATE_TRANSFER_FROM_SAVINGS_BYTE_SIZE,
+                'transaction_object_base_size': 35 * CONST.STATE_TRANSACTION_BYTE_SIZE,
+                'transaction_object_byte_size': 1 * CONST.STATE_TRANSACTION_BYTE_SIZE,
+                'vesting_delegation_object_base_size': 60 * CONST.STATE_BYTES_SCALE,
+                'vesting_delegation_expiration_object_base_size': 44 * CONST.STATE_BYTES_SCALE,
+                'withdraw_vesting_route_object_base_size': 43 * CONST.STATE_BYTES_SCALE,
+                'witness_object_base_size': 266 * CONST.STATE_BYTES_SCALE,
+                'witness_object_url_char_size': 1 * CONST.STATE_BYTES_SCALE,
+                'witness_vote_object_base_size': 40 * CONST.STATE_BYTES_SCALE
+            }
+
+
+            async function rpc(method, params) {
+                const res = await superagent('POST', STEEM_API_URL)
+                    .send({ "id": 1, "jsonrpc": "2.0", "method": method, "params": params })
+                    .timeout({
+                        response: 10000,
+                        deadline: 60000,
+                    })
+                const { id, jsonrpc, result, error } = JSON.parse(res.text)
+                if (error) {
+                    throw new Error(error);
+                }
+                return result;
+            }
+            function getResourceCount(tx_size, {
+                state_bytes_count = 0,
+                new_account_op_count = 0,
+                market_op_count = 0
+            }, state_object_size_info) {
+                resource_count = { "resource_history_bytes": tx_size }
+                resource_count["resource_state_bytes"] = state_object_size_info["transaction_object_base_size"]
+                resource_count["resource_state_bytes"] += state_object_size_info["transaction_object_byte_size"] * tx_size
+                resource_count["resource_state_bytes"] += state_bytes_count
+                resource_count["resource_new_accounts"] = new_account_op_count
+                if (market_op_count) {
+                    resource_count["resource_market_bytes"] = market_op_count
+                }
+                return resource_count
+            }
+            function getRcCost(resource_count, pools, params, config, gprops) {
+                const STEEM_RC_REGEN_TIME = 60 * 60 * 24 * 5;
+                const total_vesting_shares = Big(gprops["total_vesting_shares"].split(' ')[0]).c.join('');
+                let rc_regen = bigInt(total_vesting_shares).divide(
+                    bigInt(STEEM_RC_REGEN_TIME).divide(config["STEEM_BLOCK_INTERVAL"]).toString()
+                )
+                let total_cost = bigInt(0)
+                if (rc_regen.eq(0)) {
+                    return total_cost.toString()
+                }
+
+                for (resource_type in resource_count) {
+                    let curve_params = params[resource_type]["price_curve_params"]
+                    let current_pool = pools[resource_type]["pool"]
+                    let count = resource_count[resource_type]
+                    count *= params[resource_type]["resource_dynamics_params"]["resource_unit"]
+                    let cost = compute_rc_cost(curve_params, current_pool, count, rc_regen)
+                    total_cost = total_cost.plus(cost)
+                }
+                return total_cost.toString()
+            }
+            function compute_rc_cost(curve_params, current_pool, resource_count, rc_regen) {
+                let num = bigInt(rc_regen).times(curve_params['coeff_a'])
+                num = num.shiftRight(curve_params['shift']).plus(1).times(resource_count)
+                let denom = bigInt(curve_params['coeff_b'])
+                if (Big(current_pool).gt(0)) {
+                    denom = denom.plus(current_pool)
+                }
+                let num_denom = num.divide(denom)
+                return num_denom.plus(1).toString()
+            }
+            async function claim_account_price() {
+                const [{
+                    resource_names,
+                    resource_params,
+                    size_info,
+                }, {
+                    resource_pool
+                }, gprops, config] = await Promise.all([
+                    rpc('rc_api.get_resource_params', {}),
+                    rpc('rc_api.get_resource_pool', {}),
+                    rpc('condenser_api.get_dynamic_global_properties', []),
+                    rpc('condenser_api.get_config', []),
+                ]);
+                const resource_count = getResourceCount(300, {
+                    new_account_op_count: 1
+                }, CONST.STATE_OBJECT_SIZE_INFO)
+                const claim_account_cost = getRcCost(resource_count, resource_pool, resource_params, config, gprops);
+                const claim_account_cost_sp = steem.formatter.vestToSteem(Big(claim_account_cost).div(1e6).toFixed(), gprops['total_vesting_shares'], gprops['total_vesting_fund_steem']);
+                return {
+                    claim_account_cost,
+                    claim_account_cost_sp
+                }
+            }
+            async function refresh() {
+                const { claim_account_cost_sp, claim_account_cost } = await claim_account_price();
+                $('#steem_cost').text(claim_account_cost_sp.toFixed(0));
+                $('#vests_cost').text(claim_account_cost);
+                setTimeout(refresh, 5 * 1e3);
+            }
+            $(async function() {
+                refresh();
+            })
+        </script>
+    </head>
+    <body>
+        <nav class="navbar navbar-light bg-light">
+            <a class="navbar-brand" href="#">SteemKR Tools</a>
+        </nav>
+        <div class="container pt-5">
+            <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                    <h5 class="card-title">Current Claim Account Cost</h5>
+                    <p class="card-text">
+                        <span id="steem_cost">...</span>
+                        <span id="steem_unit">STEEM</span>
+                    </p>
+                    <p class="card-text">
+                        <span id="vests_cost">...</span>
+                        <span id="vests_unit">VESTS</span>
+                    </p>
+                    <a href="#" class="card-link">Claim Account</a>
+                    <a href="#" class="card-link">Another link</a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
