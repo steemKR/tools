@@ -149,16 +149,37 @@
                 setTimeout(refresh, 5 * 1e3);
             }
             $(async function() {
+                fetch("./footer.html", { 
+                    "credentials": "include", 
+                    "headers": {}, 
+                    "referrerPolicy": 
+                    "no-referrer-when-downgrade", 
+                    "body": null, 
+                    "method": "GET", 
+                    "mode": 
+                    "no-cors" 
+                }).then(response => {
+                    $(response.body).appendTo('body');
+                })
                 refresh();
             })
         </script>
+        <style>
+            html {
+                position: relative;
+                min-height: 100%;
+            }
+            body {
+                margin-bottom: 140px; /* Margin bottom by footer height */
+            }
+        </style>
     </head>
     <body>
-        <nav class="navbar navbar-light bg-light">
-            <a class="navbar-brand" href="#">SteemKR Tools</a>
-        </nav>
-        <div class="container pt-5">
-            <div class="card" style="width: 18rem;">
+        <div class="container">
+            <h1 class="pt-5 pb-5">
+                Resource Credits Tools
+            </h1>
+            <div class="card" style="width: 20rem;">
                 <div class="card-body">
                     <h5 class="card-title">Current Claim Account Cost</h5>
                     <p class="card-text">
@@ -173,13 +194,10 @@
                     </p>
                 </div>
             </div>
-            <p>
-                
-            </p>
-        </div>
-        <div class="container pt-5">
-            <div class="alert alert-warning" role="alert">
-                계산 과정에서 한번씩 1/10 가격으로 표시되는 오류가 있음.
+            <div class="pt-5">
+                <div class="alert alert-warning" role="alert">
+                    현재 계산 과정에서 한번씩 1/10 가격으로 표시되는 오류가 있습니다.
+                </div>
             </div>
         </div>
     </body>
