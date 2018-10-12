@@ -145,7 +145,7 @@
             async function refresh() {
                 const { claim_account_cost_sp, claim_account_cost } = await claim_account_price();
                 $('#steem_cost').text(claim_account_cost_sp.toFixed(0));
-                $('#vests_cost').text(claim_account_cost);
+                $('#mana_cost').text(claim_account_cost);
                 setTimeout(refresh, 5 * 1e3);
             }
             $(async function() {
@@ -164,13 +164,18 @@
                     <p class="card-text">
                         <span id="steem_cost">...</span>
                         <span id="steem_unit">STEEM</span>
+                        <span>/ 5 Days</span>
                     </p>
                     <p class="card-text">
-                        <span id="vests_cost">...</span>
-                        <span id="vests_unit">VESTS</span>
+                        <span id="mana_cost">...</span>
+                        <span id="mana_unit">MANA</span>
+                        <span>/ 5 Days</span>
                     </p>
                 </div>
             </div>
+            <p>
+                
+            </p>
         </div>
         <div class="container pt-5">
             <div class="alert alert-warning" role="alert">
