@@ -174,7 +174,9 @@
                         account_data.net_rc = getNetMana(account_data.max_rc, account_data.rc_manabar)
                         account_data.net_rc_perc = getNetManaPerc(account_data.max_rc, account_data.rc_manabar);
                         account_data.net_rc_sp = steem.formatter.vestToSteem(Big(account_data.net_rc).div(1e6), GPROPS['total_vesting_shares'], GPROPS['total_vesting_fund_steem']);
+                        account_data.max_rc_sp = steem.formatter.vestToSteem(Big(account_data.max_rc).div(1e6), GPROPS['total_vesting_shares'], GPROPS['total_vesting_fund_steem']);
                         $('#account_steem_power').text(Number(account_data.net_rc_sp).toFixed(0));
+                        $('#account_steem_power_max').text(Number(account_data.max_rc_sp).toFixed(0));
                         $('#account_mana').text(account_data.net_rc);
                         $('#account_mana_perc').text(Number(account_data.net_rc_perc).toFixed(2));
                     }
@@ -240,6 +242,8 @@
                         </p>
                         <p class="card-text">
                             <span id="account_steem_power">...</span>
+                            /
+                            <span id="account_steem_power_max">...</span>
                             <span id="account_steem_power_unit">SP</span>
                             (
                                 <span id="account_mana_perc">...</span>
