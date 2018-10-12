@@ -16,6 +16,7 @@
         <script>
             let STEEM_API_URL = 'https://api.steemit.com';
             const CONST = {};
+            Big.DP = 1000;
 
             CONST.STEEM_100_PERCENT = 10000
             CONST.STEEM_1_PERCENT = 100
@@ -92,34 +93,34 @@
             function getRcCost(resource_count, pools, params, config, gprops) {
                 const STEEM_RC_REGEN_TIME = 60 * 60 * 24 * 5;
                 const total_vesting_shares = Big(gprops["total_vesting_shares"].split(' ')[0]).c.join('');
-                let rc_regen = bigInt(total_vesting_shares).divide(
-                    bigInt(STEEM_RC_REGEN_TIME).divide(config["STEEM_BLOCK_INTERVAL"]).toString()
-                )
-                let total_cost = bigInt(0)
-                if (rc_regen.eq(0)) {
-                    return total_cost.toString()
+                let rc_regen = Big(total_vesting_shares).div(Big(Number(STEEM_RC_REGEN_TIME)).div(Big(Number(config["STEEM_BLOCK_INTERVAL"]))))
+                let total_cost = Big(0)
+                if (rc_regen == 0) {
+                    return total_cost.toFixed(0)
                 }
 
                 for (resource_type in resource_count) {
                     let curve_params = params[resource_type]["price_curve_params"]
                     let current_pool = pools[resource_type]["pool"]
-                    let count = resource_count[resource_type]
-                    count *= params[resource_type]["resource_dynamics_params"]["resource_unit"]
+                    let count = Big(resource_count[resource_type])
+                    count = count.plus(Big(params[resource_type]["resource_dynamics_params"]["resource_unit"]))
                     let cost = compute_rc_cost(curve_params, current_pool, count, rc_regen)
-                    total_cost = total_cost.plus(cost)
+                    total_cost = total_cost.plus(Big(cost))
                 }
-                return total_cost.toString()
+                return total_cost.toFixed(0)
             }
             function compute_rc_cost(curve_params, current_pool, resource_count, rc_regen) {
-                let num = bigInt(rc_regen).times(curve_params['coeff_a'])
-                num = num.shiftRight(curve_params['shift']).plus(1).times(resource_count)
-                let denom = bigInt(curve_params['coeff_b'])
+                let num = Big(rc_regen).times(curve_params['coeff_a']).div(
+                    Big(2).pow(curve_params['shift'])
+                ).plus(1).times(resource_count);
+                let denom = Big(curve_params['coeff_b'])
                 if (Big(current_pool).gt(0)) {
-                    denom = denom.plus(current_pool)
+                    denom = denom.plus(current_pool);
                 }
-                let num_denom = num.divide(denom)
-                return num_denom.plus(1).toString()
+                let num_denom = num.div(denom)
+                return num_denom.plus(1).toFixed(0)
             }
+            let GPROPS, CONFIG;
             async function claim_account_price() {
                 const [{
                     resource_names,
@@ -133,23 +134,58 @@
                     rpc('condenser_api.get_dynamic_global_properties', []),
                     rpc('condenser_api.get_config', []),
                 ]);
+                GPROPS = gprops;
+                CONFIG = config;
                 const resource_count = getResourceCount(300, {
                     new_account_op_count: 1
                 }, CONST.STATE_OBJECT_SIZE_INFO)
                 const claim_account_cost = getRcCost(resource_count, resource_pool, resource_params, config, gprops);
-                const claim_account_cost_sp = steem.formatter.vestToSteem(Big(claim_account_cost).div(1e6).toFixed(), gprops['total_vesting_shares'], gprops['total_vesting_fund_steem']);
+                const claim_account_cost_sp = steem.formatter.vestToSteem(Big(claim_account_cost).div(1e6), gprops['total_vesting_shares'], gprops['total_vesting_fund_steem']);
                 return {
                     claim_account_cost,
                     claim_account_cost_sp
                 }
             }
+            function getNetMana(max_mana, manabar) {
+                const elapsed = (new Date().getTime() * 0.001) - manabar.last_update_time;
+                // 432000 sec = 5 days
+                let currentMana = Big(manabar.current_mana).plus(Big(elapsed).times(max_mana).div(432000));
+                if (currentMana.gt(max_mana)) {
+                    currentMana = Big(max_mana);
+                }
+                return currentMana.toFixed(0);
+            }
+            function getNetManaPerc(max_mana, manabar) {
+                const netMana = getNetMana(max_mana, manabar);
+                return Big(netMana).times(100).div(max_mana).toString();
+            }
             async function refresh() {
                 const { claim_account_cost_sp, claim_account_cost } = await claim_account_price();
                 $('#steem_cost').text(claim_account_cost_sp.toFixed(0));
                 $('#mana_cost').text(claim_account_cost);
+
+                const account = $('input[name=account]').val();
+                if (account) {
+                    const {rc_accounts:[account_data]} = await rpc('rc_api.find_rc_accounts', {
+                        accounts:[account.toLowerCase().replace(/@/gim, '')]
+                    });
+                    if (account_data) {    
+                        localStorage.setItem('account', account);
+                        account_data.net_rc = getNetMana(account_data.max_rc, account_data.rc_manabar)
+                        account_data.net_rc_perc = getNetManaPerc(account_data.max_rc, account_data.rc_manabar);
+                        account_data.net_rc_sp = steem.formatter.vestToSteem(Big(account_data.net_rc).div(1e6), GPROPS['total_vesting_shares'], GPROPS['total_vesting_fund_steem']);
+                        $('#account_steem_power').text(Number(account_data.net_rc_sp).toFixed(0));
+                        $('#account_mana').text(account_data.net_rc);
+                        $('#account_mana_perc').text(Number(account_data.net_rc_perc).toFixed(2));
+                    }
+                }
                 setTimeout(refresh, 5 * 1e3);
             }
             $(async function() {
+                const account = localStorage.getItem('account');
+                if (account) {
+                    $('input[name=account]').val(account);
+                }
                 let url = './footer.dom.html';
                 if (location.protocol == 'file:') {
                     url = 'https://steemkr.github.io/tools/footer.dom.html';
@@ -158,10 +194,8 @@
                     method: "get", 
                     mode: "no-cors"
                 }).then(response => {
-                    console.log(response);
                     return response.text();
                 }).then(html => {
-                    console.log(html);
                     $(html).appendTo('body');
                 })
                 refresh();
@@ -179,19 +213,45 @@
             <h1 class="pt-5 pb-5">
                 Resource Credits Tools
             </h1>
-            <div class="card" style="width: 20rem;">
-                <div class="card-body">
-                    <h5 class="card-title">Current Claim Account Cost</h5>
-                    <p class="card-text">
-                        <span id="steem_cost">...</span>
-                        <span id="steem_unit">STEEM</span>
-                        <span>/ 5 Days</span>
-                    </p>
-                    <p class="card-text small">
-                        <span id="mana_cost">...</span>
-                        <span id="mana_unit">MANA</span>
-                        <span>/ 5 Days</span>
-                    </p>
+            <div class="row">
+                <div class="col">
+                <div class="card mb-3" style="width: 20rem;">
+                    <div class="card-body">
+                        <h5 class="card-title">Current Claim Account Cost</h5>
+                        <p class="card-text">
+                            <span id="steem_cost">...</span>
+                            <span id="steem_unit">STEEM</span>
+                            <span>/ 5 Days</span>
+                        </p>
+                        <p class="card-text small">
+                            <span id="mana_cost">...</span>
+                            <span id="mana_unit">MANA</span>
+                            <span>/ 5 Days</span>
+                        </p>
+                    </div>
+                </div>
+                </div>
+                <div class="col">
+                <div class="card mb-3" style="width: 20rem;">
+                    <div class="card-body">
+                        <h5 class="card-title">Your Resource Credits</h5>
+                        <p class="card-text">
+                            <input type="text" id="account" class="form-control" name="account">
+                        </p>
+                        <p class="card-text">
+                            <span id="account_steem_power">...</span>
+                            <span id="account_steem_power_unit">SP</span>
+                            (
+                                <span id="account_mana_perc">...</span>
+                                <span id="account_mana_perc_unit">%</span>
+                            )
+                        </p>
+                        <p class="card-text small">
+                            <span id="account_mana">...</span>
+                            <span id="account_mana_unit">MANA</span>
+                        </p>
+                    </div>
+                </div>
                 </div>
             </div>
             <div class="pt-5">
