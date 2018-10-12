@@ -164,22 +164,36 @@
                 $('#steem_cost').text(claim_account_cost_sp.toFixed(0));
                 $('#mana_cost').text(claim_account_cost);
 
-                const account = $('input[name=account]').val();
+                let account = $('input[name=account]').val();
                 if (account) {
-                    const {rc_accounts:[account_data]} = await rpc('rc_api.find_rc_accounts', {
-                        accounts:[account.toLowerCase().replace(/@/gim, '')]
-                    });
-                    if (account_data) {    
+                    const [[account_data], {rc_accounts:[rc_account_data]}] = await Promise.all([
+                        rpc('condenser_api.get_accounts', [
+                            [account.toLowerCase().replace(/@/gim, '')]
+                        ]),
+                        rpc('rc_api.find_rc_accounts', {
+                            accounts:[account.toLowerCase().replace(/@/gim, '')]
+                        })
+                    ]);
+                    if (rc_account_data) {    
                         localStorage.setItem('account', account);
-                        account_data.net_rc = getNetMana(account_data.max_rc, account_data.rc_manabar)
-                        account_data.net_rc_perc = getNetManaPerc(account_data.max_rc, account_data.rc_manabar);
-                        account_data.net_rc_sp = steem.formatter.vestToSteem(Big(account_data.net_rc).div(1e6), GPROPS['total_vesting_shares'], GPROPS['total_vesting_fund_steem']);
-                        account_data.max_rc_sp = steem.formatter.vestToSteem(Big(account_data.max_rc).div(1e6), GPROPS['total_vesting_shares'], GPROPS['total_vesting_fund_steem']);
-                        $('#account_steem_power').text(Number(account_data.net_rc_sp).toFixed(0));
-                        $('#account_steem_power_max').text(Number(account_data.max_rc_sp).toFixed(0));
-                        $('#account_mana').text(account_data.net_rc);
-                        $('#account_mana_perc').text(Number(account_data.net_rc_perc).toFixed(2));
+                        rc_account_data.net_rc = getNetMana(rc_account_data.max_rc, rc_account_data.rc_manabar)
+                        rc_account_data.net_rc_perc = getNetManaPerc(rc_account_data.max_rc, rc_account_data.rc_manabar);
+                        rc_account_data.net_rc_sp = steem.formatter.vestToSteem(Big(rc_account_data.net_rc).div(1e6), GPROPS['total_vesting_shares'], GPROPS['total_vesting_fund_steem']);
+                        rc_account_data.max_rc_sp = steem.formatter.vestToSteem(Big(rc_account_data.max_rc).div(1e6), GPROPS['total_vesting_shares'], GPROPS['total_vesting_fund_steem']);
+                        $('#account_steem_power').text(Number(rc_account_data.net_rc_sp).toFixed(0));
+                        $('#account_steem_power_max').text(Number(rc_account_data.max_rc_sp).toFixed(0));
+                        $('#account_mana').text(rc_account_data.net_rc);
+                        $('#account_mana_perc').text(Number(rc_account_data.net_rc_perc).toFixed(2));
+                        $('#claim_button')
+                            .attr('href',`https://steemconnect.com/sign/claim_account?creator=${account}&fee=0.000%20STEEM&extensions=[]`)
+                            .text(`Claim Account (${account_data.pending_claimed_accounts})`)
+                            .show();
+                    } else {
+                        account = null;
                     }
+                }
+                if (!account) {
+                    $('#claim_button').hide();
                 }
                 setTimeout(refresh, 5 * 1e3);
             }
@@ -238,7 +252,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Your Resource Credits</h5>
                         <p class="card-text">
-                            <input type="text" id="account" class="form-control" name="account">
+                            <input type="text" id="account" class="form-control" name="account" placeholder="Input your account name">
                         </p>
                         <p class="card-text">
                             <span id="account_steem_power">...</span>
@@ -254,6 +268,7 @@
                             <span id="account_mana">...</span>
                             <span id="account_mana_unit">MANA</span>
                         </p>
+                        <a id="claim_button" target="_blank" class="card-link" style="display: none;">Claim Token</a>
                     </div>
                 </div>
                 </div>
