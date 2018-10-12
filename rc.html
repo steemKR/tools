@@ -161,7 +161,7 @@
             }
             async function refresh() {
                 const { claim_account_cost_sp, claim_account_cost } = await claim_account_price();
-                $('#steem_cost').text(claim_account_cost_sp.toFixed(0));
+                $('.data-steem-cost').text(claim_account_cost_sp.toFixed(0));
                 $('#mana_cost').text(claim_account_cost);
 
                 let account = $('input[name=account]').val();
@@ -235,7 +235,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Current Claim Account Cost</h5>
                         <p class="card-text">
-                            <span id="steem_cost">...</span>
+                            <span id="steem_cost" class="data-steem-cost">...</span>
                             <span id="steem_unit">STEEM</span>
                             <span>/ 5 Days</span>
                         </p>
@@ -275,8 +275,12 @@
             </div>
             <div class="pt-5">
                 <div class="alert alert-warning" role="alert">
-                    현재 계산 과정에서 한번씩 1/10 가격으로 표시되는 오류가 있습니다.
+                    현재 큰 자릿수 연산에 오류가 있어 간혹 1/10, 1/100 비용으로 표시되는 오류가 있습니다.
                 </div>
+                <p>
+                    <b>Current Claim Account Cost</b>에 표시되는 STEEM은 계정 생성시 사용되는 RC를 환산한 값입니다.
+                    따라서, 표시되는 <span class="data-steem-cost bold"></span>스팀 파워를 가진 계정은 5일마다 1개의 계정을 만들 수 있습니다.
+                </p>
             </div>
         </div>
     </body>
