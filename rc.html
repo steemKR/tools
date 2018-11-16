@@ -12,54 +12,12 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.8.3/superagent.js" integrity="sha256-GrhVjaiD/8xytSGcF2mVrZQf89pfPgwU7IFssndhRoU=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/big.js/5.2.1/big.js" integrity="sha256-PFSAPfdN8WxDI1kfDyA4SNLQFvXAP9zOyzr6eTFTzsQ=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/big-integer/1.6.36/BigInteger.js" integrity="sha256-ASOxDAufOKVUh3CsB7JO2UtQTA75J55y5b+4JvK1CNc=" crossorigin="anonymous"></script>
-        <script src="https://cdn.steemjs.com/lib/latest/steem.min.js"></script>
+        <script src="./scripts/steem.min.js"></script>
+        <script src="./scripts/pdfmake.js"></script>
+        <script src="./scripts/vfs_fonts.js"></script>
         <script>
             let STEEM_API_URL = 'https://api.steemit.com';
-            const CONST = {};
             Big.DP = 1000;
-
-            CONST.STEEM_100_PERCENT = 10000
-            CONST.STEEM_1_PERCENT = 100
-            CONST.STEEM_REVERSE_AUCTION_WINDOW_SECONDS_HF20 = 900
-            CONST.STEEM_REVERSE_AUCTION_WINDOW_SECONDS_HF6 = 1800
-            CONST.STEEM_VOTE_REGENERATION_SECONDS = 432000
-            CONST.STEEM_VOTING_MANA_REGENERATION_SECONDS = 432000
-            CONST.STEEM_VOTE_DUST_THRESHOLD = 50000000
-            CONST.STEEM_ROOT_POST_PARENT = ''
-
-            CONST.STATE_BYTES_SCALE = 10000
-            CONST.STATE_TRANSACTION_BYTE_SIZE = 174
-            CONST.STATE_TRANSFER_FROM_SAVINGS_BYTE_SIZE = 229
-            CONST.STATE_LIMIT_ORDER_BYTE_SIZE = 1940
-            CONST.RC_DEFAULT_EXEC_COST = 100000
-            CONST.STEEM_RC_REGEN_TIME = 60 * 60 * 24 * 5
-
-            CONST.STATE_OBJECT_SIZE_INFO = {
-                'authority_base_size': 4 * CONST.STATE_BYTES_SCALE,
-                'authority_account_member_size': 18 * CONST.STATE_BYTES_SCALE,
-                'authority_key_member_size': 35 * CONST.STATE_BYTES_SCALE,
-                'account_object_base_size': 480 * CONST.STATE_BYTES_SCALE,
-                'account_authority_object_base_size': 40 * CONST.STATE_BYTES_SCALE,
-                'account_recovery_request_object_base_size': 32 * CONST.STATE_BYTES_SCALE,
-                'comment_object_base_size': 201 * CONST.STATE_BYTES_SCALE,
-                'comment_object_permlink_char_size': 1 * CONST.STATE_BYTES_SCALE,
-                'comment_object_parent_permlink_char_size': 2 * CONST.STATE_BYTES_SCALE,
-                'comment_object_beneficiaries_member_size': 18 * CONST.STATE_BYTES_SCALE,
-                'comment_vote_object_base_size': 47 * CONST.STATE_BYTES_SCALE,
-                'convert_request_object_base_size': 48 * CONST.STATE_BYTES_SCALE,
-                'decline_voting_rights_request_object_base_size': 28 * CONST.STATE_BYTES_SCALE,
-                'escrow_object_base_size': 119 * CONST.STATE_BYTES_SCALE,
-                'limit_order_object_base_size': 76 * CONST.STATE_LIMIT_ORDER_BYTE_SIZE,
-                'savings_withdraw_object_byte_size': 64 * CONST.STATE_TRANSFER_FROM_SAVINGS_BYTE_SIZE,
-                'transaction_object_base_size': 35 * CONST.STATE_TRANSACTION_BYTE_SIZE,
-                'transaction_object_byte_size': 1 * CONST.STATE_TRANSACTION_BYTE_SIZE,
-                'vesting_delegation_object_base_size': 60 * CONST.STATE_BYTES_SCALE,
-                'vesting_delegation_expiration_object_base_size': 44 * CONST.STATE_BYTES_SCALE,
-                'withdraw_vesting_route_object_base_size': 43 * CONST.STATE_BYTES_SCALE,
-                'witness_object_base_size': 266 * CONST.STATE_BYTES_SCALE,
-                'witness_object_url_char_size': 1 * CONST.STATE_BYTES_SCALE,
-                'witness_vote_object_base_size': 40 * CONST.STATE_BYTES_SCALE
-            }
 
 
             async function rpc(method, params) {
@@ -138,7 +96,7 @@
                 CONFIG = config;
                 const resource_count = getResourceCount(300, {
                     new_account_op_count: 1
-                }, CONST.STATE_OBJECT_SIZE_INFO)
+                }, size_info.resource_state_bytes)
                 const claim_account_cost = getRcCost(resource_count, resource_pool, resource_params, config, gprops);
                 const claim_account_cost_sp = steem.formatter.vestToSteem(Big(claim_account_cost).div(1e6), gprops['total_vesting_shares'], gprops['total_vesting_fund_steem']);
                 return {
@@ -158,6 +116,284 @@
             function getNetManaPerc(max_mana, manabar) {
                 const netMana = getNetMana(max_mana, manabar);
                 return Big(netMana).times(100).div(max_mana).toString();
+            }
+
+var WORDS = `abandon,ability,able,about,above,absent,absorb,abstract,absurd,abuse,access,accident,account,accuse,achieve,acid,acoustic,acquire,across,act,action,actor,actress,actual,adapt,add,addict,address,adjust,admit,adult,advance,advice,aerobic,affair,afford,afraid,again,age,agent,agree,ahead,aim,air,airport,aisle,alarm,album,alcohol,alert,alien,all,alley,allow,almost,alone,alpha,already,also,alter,always,amateur,amazing,among,amount,amused,analyst,anchor,ancient,anger,angle,angry,animal,ankle,announce,annual,another,answer,antenna,antique,anxiety,any,apart,apology,appear,apple,approve,april,arch,arctic,area,arena,argue,arm,armed,armor,army,around,arrange,arrest,arrive,arrow,art,artefact,artist,artwork,ask,aspect,assault,asset,assist,assume,asthma,athlete,atom,attack,attend,attitude,attract,auction,audit,august,aunt,author,auto,autumn,average,avocado,avoid,awake,aware,away,awesome,awful,awkward,axis,baby,bachelor,bacon,badge,bag,balance,balcony,ball,bamboo,banana,banner,bar,barely,bargain,barrel,base,basic,basket,battle,beach,bean,beauty,because,become,beef,before,begin,behave,behind,believe,below,belt,bench,benefit,best,betray,better,between,beyond,bicycle,bid,bike,bind,biology,bird,birth,bitter,black,blade,blame,blanket,blast,bleak,bless,blind,blood,blossom,blouse,blue,blur,blush,board,boat,body,boil,bomb,bone,bonus,book,boost,border,boring,borrow,boss,bottom,bounce,box,boy,bracket,brain,brand,brass,brave,bread,breeze,brick,bridge,brief,bright,bring,brisk,broccoli,broken,bronze,broom,brother,brown,brush,bubble,buddy,budget,buffalo,build,bulb,bulk,bullet,bundle,bunker,burden,burger,burst,bus,business,busy,butter,buyer,buzz,cabbage,cabin,cable,cactus,cage,cake,call,calm,camera,camp,can,canal,cancel,candy,cannon,canoe,canvas,canyon,capable,capital,captain,car,carbon,card,cargo,carpet,carry,cart,case,cash,casino,castle,casual,cat,catalog,catch,category,cattle,caught,cause,caution,cave,ceiling,celery,cement,census,century,cereal,certain,chair,chalk,champion,change,chaos,chapter,charge,chase,chat,cheap,check,cheese,chef,cherry,chest,chicken,chief,child,chimney,choice,choose,chronic,chuckle,chunk,churn,cigar,cinnamon,circle,citizen,city,civil,claim,clap,clarify,claw,clay,clean,clerk,clever,click,client,cliff,climb,clinic,clip,clock,clog,close,cloth,cloud,clown,club,clump,cluster,clutch,coach,coast,coconut,code,coffee,coil,coin,collect,color,column,combine,come,comfort,comic,common,company,concert,conduct,confirm,congress,connect,consider,control,convince,cook,cool,copper,copy,coral,core,corn,correct,cost,cotton,couch,country,couple,course,cousin,cover,coyote,crack,cradle,craft,cram,crane,crash,crater,crawl,crazy,cream,credit,creek,crew,cricket,crime,crisp,critic,crop,cross,crouch,crowd,crucial,cruel,cruise,crumble,crunch,crush,cry,crystal,cube,culture,cup,cupboard,curious,current,curtain,curve,cushion,custom,cute,cycle,dad,damage,damp,dance,danger,daring,dash,daughter,dawn,day,deal,debate,debris,decade,december,decide,decline,decorate,decrease,deer,defense,define,defy,degree,delay,deliver,demand,demise,denial,dentist,deny,depart,depend,deposit,depth,deputy,derive,describe,desert,design,desk,despair,destroy,detail,detect,develop,device,devote,diagram,dial,diamond,diary,dice,diesel,diet,differ,digital,dignity,dilemma,dinner,dinosaur,direct,dirt,disagree,discover,disease,dish,dismiss,disorder,display,distance,divert,divide,divorce,dizzy,doctor,document,dog,doll,dolphin,domain,donate,donkey,donor,door,dose,double,dove,draft,dragon,drama,drastic,draw,dream,dress,drift,drill,drink,drip,drive,drop,drum,dry,duck,dumb,dune,during,dust,dutch,duty,dwarf,dynamic,eager,eagle,early,earn,earth,easily,east,easy,echo,ecology,economy,edge,edit,educate,effort,egg,eight,either,elbow,elder,electric,elegant,element,elephant,elevator,elite,else,embark,embody,embrace,emerge,emotion,employ,empower,empty,enable,enact,end,endless,endorse,enemy,energy,enforce,engage,engine,enhance,enjoy,enlist,enough,enrich,enroll,ensure,enter,entire,entry,envelope,episode,equal,equip,era,erase,erode,erosion,error,erupt,escape,essay,essence,estate,eternal,ethics,evidence,evil,evoke,evolve,exact,example,excess,exchange,excite,exclude,excuse,execute,exercise,exhaust,exhibit,exile,exist,exit,exotic,expand,expect,expire,explain,expose,express,extend,extra,eye,eyebrow,fabric,face,faculty,fade,faint,faith,fall,false,fame,family,famous,fan,fancy,fantasy,farm,fashion,fat,fatal,father,fatigue,fault,favorite,feature,february,federal,fee,feed,feel,female,fence,festival,fetch,fever,few,fiber,fiction,field,figure,file,film,filter,final,find,fine,finger,finish,fire,firm,first,fiscal,fish,fit,fitness,fix,flag,flame,flash,flat,flavor,flee,flight,flip,float,flock,floor,flower,fluid,flush,fly,foam,focus,fog,foil,fold,follow,food,foot,force,forest,forget,fork,fortune,forum,forward,fossil,foster,found,fox,fragile,frame,frequent,fresh,friend,fringe,frog,front,frost,frown,frozen,fruit,fuel,fun,funny,furnace,fury,future,gadget,gain,galaxy,gallery,game,gap,garage,garbage,garden,garlic,garment,gas,gasp,gate,gather,gauge,gaze,general,genius,genre,gentle,genuine,gesture,ghost,giant,gift,giggle,ginger,giraffe,girl,give,glad,glance,glare,glass,glide,glimpse,globe,gloom,glory,glove,glow,glue,goat,goddess,gold,good,goose,gorilla,gospel,gossip,govern,gown,grab,grace,grain,grant,grape,grass,gravity,great,green,grid,grief,grit,grocery,group,grow,grunt,guard,guess,guide,guilt,guitar,gun,gym,habit,hair,half,hammer,hamster,hand,happy,harbor,hard,harsh,harvest,hat,have,hawk,hazard,head,health,heart,heavy,hedgehog,height,hello,helmet,help,hen,hero,hidden,high,hill,hint,hip,hire,history,hobby,hockey,hold,hole,holiday,hollow,home,honey,hood,hope,horn,horror,horse,hospital,host,hotel,hour,hover,hub,huge,human,humble,humor,hundred,hungry,hunt,hurdle,hurry,hurt,husband,hybrid,ice,icon,idea,identify,idle,ignore,ill,illegal,illness,image,imitate,immense,immune,impact,impose,improve,impulse,inch,include,income,increase,index,indicate,indoor,industry,infant,inflict,inform,inhale,inherit,initial,inject,injury,inmate,inner,innocent,input,inquiry,insane,insect,inside,inspire,install,intact,interest,into,invest,invite,involve,iron,island,isolate,issue,item,ivory,jacket,jaguar,jar,jazz,jealous,jeans,jelly,jewel,job,join,joke,journey,joy,judge,juice,jump,jungle,junior,junk,just,kangaroo,keen,keep,ketchup,key,kick,kid,kidney,kind,kingdom,kiss,kit,kitchen,kite,kitten,kiwi,knee,knife,knock,know,lab,label,labor,ladder,lady,lake,lamp,language,laptop,large,later,latin,laugh,laundry,lava,law,lawn,lawsuit,layer,lazy,leader,leaf,learn,leave,lecture,left,leg,legal,legend,leisure,lemon,lend,length,lens,leopard,lesson,letter,level,liar,liberty,library,license,life,lift,light,like,limb,limit,link,lion,liquid,list,little,live,lizard,load,loan,lobster,local,lock,logic,lonely,long,loop,lottery,loud,lounge,love,loyal,lucky,luggage,lumber,lunar,lunch,luxury,lyrics,machine,mad,magic,magnet,maid,mail,main,major,make,mammal,man,manage,mandate,mango,mansion,manual,maple,marble,march,margin,marine,market,marriage,mask,mass,master,match,material,math,matrix,matter,maximum,maze,meadow,mean,measure,meat,mechanic,medal,media,melody,melt,member,memory,mention,menu,mercy,merge,merit,merry,mesh,message,metal,method,middle,midnight,milk,million,mimic,mind,minimum,minor,minute,miracle,mirror,misery,miss,mistake,mix,mixed,mixture,mobile,model,modify,mom,moment,monitor,monkey,monster,month,moon,moral,more,morning,mosquito,mother,motion,motor,mountain,mouse,move,movie,much,muffin,mule,multiply,muscle,museum,mushroom,music,must,mutual,myself,mystery,myth,naive,name,napkin,narrow,nasty,nation,nature,near,neck,need,negative,neglect,neither,nephew,nerve,nest,net,network,neutral,never,news,next,nice,night,noble,noise,nominee,noodle,normal,north,nose,notable,note,nothing,notice,novel,now,nuclear,number,nurse,nut,oak,obey,object,oblige,obscure,observe,obtain,obvious,occur,ocean,october,odor,off,offer,office,often,oil,okay,old,olive,olympic,omit,once,one,onion,online,only,open,opera,opinion,oppose,option,orange,orbit,orchard,order,ordinary,organ,orient,original,orphan,ostrich,other,outdoor,outer,output,outside,oval,oven,over,own,owner,oxygen,oyster,ozone,pact,paddle,page,pair,palace,palm,panda,panel,panic,panther,paper,parade,parent,park,parrot,party,pass,patch,path,patient,patrol,pattern,pause,pave,payment,peace,peanut,pear,peasant,pelican,pen,penalty,pencil,people,pepper,perfect,permit,person,pet,phone,photo,phrase,physical,piano,picnic,picture,piece,pig,pigeon,pill,pilot,pink,pioneer,pipe,pistol,pitch,pizza,place,planet,plastic,plate,play,please,pledge,pluck,plug,plunge,poem,poet,point,polar,pole,police,pond,pony,pool,popular,portion,position,possible,post,potato,pottery,poverty,powder,power,practice,praise,predict,prefer,prepare,present,pretty,prevent,price,pride,primary,print,priority,prison,private,prize,problem,process,produce,profit,program,project,promote,proof,property,prosper,protect,proud,provide,public,pudding,pull,pulp,pulse,pumpkin,punch,pupil,puppy,purchase,purity,purpose,purse,push,put,puzzle,pyramid,quality,quantum,quarter,question,quick,quit,quiz,quote,rabbit,raccoon,race,rack,radar,radio,rail,rain,raise,rally,ramp,ranch,random,range,rapid,rare,rate,rather,raven,raw,razor,ready,real,reason,rebel,rebuild,recall,receive,recipe,record,recycle,reduce,reflect,reform,refuse,region,regret,regular,reject,relax,release,relief,rely,remain,remember,remind,remove,render,renew,rent,reopen,repair,repeat,replace,report,require,rescue,resemble,resist,resource,response,result,retire,retreat,return,reunion,reveal,review,reward,rhythm,rib,ribbon,rice,rich,ride,ridge,rifle,right,rigid,ring,riot,ripple,risk,ritual,rival,river,road,roast,robot,robust,rocket,romance,roof,rookie,room,rose,rotate,rough,round,route,royal,rubber,rude,rug,rule,run,runway,rural,sad,saddle,sadness,safe,sail,salad,salmon,salon,salt,salute,same,sample,sand,satisfy,satoshi,sauce,sausage,save,say,scale,scan,scare,scatter,scene,scheme,school,science,scissors,scorpion,scout,scrap,screen,script,scrub,sea,search,season,seat,second,secret,section,security,seed,seek,segment,select,sell,seminar,senior,sense,sentence,series,service,session,settle,setup,seven,shadow,shaft,shallow,share,shed,shell,sheriff,shield,shift,shine,ship,shiver,shock,shoe,shoot,shop,short,shoulder,shove,shrimp,shrug,shuffle,shy,sibling,sick,side,siege,sight,sign,silent,silk,silly,silver,similar,simple,since,sing,siren,sister,situate,six,size,skate,sketch,ski,skill,skin,skirt,skull,slab,slam,sleep,slender,slice,slide,slight,slim,slogan,slot,slow,slush,small,smart,smile,smoke,smooth,snack,snake,snap,sniff,snow,soap,soccer,social,sock,soda,soft,solar,soldier,solid,solution,solve,someone,song,soon,sorry,sort,soul,sound,soup,source,south,space,spare,spatial,spawn,speak,special,speed,spell,spend,sphere,spice,spider,spike,spin,spirit,split,spoil,sponsor,spoon,sport,spot,spray,spread,spring,spy,square,squeeze,squirrel,stable,stadium,staff,stage,stairs,stamp,stand,start,state,stay,steak,steel,stem,step,stereo,stick,still,sting,stock,stomach,stone,stool,story,stove,strategy,street,strike,strong,struggle,student,stuff,stumble,style,subject,submit,subway,success,such,sudden,suffer,sugar,suggest,suit,summer,sun,sunny,sunset,super,supply,supreme,sure,surface,surge,surprise,surround,survey,suspect,sustain,swallow,swamp,swap,swarm,swear,sweet,swift,swim,swing,switch,sword,symbol,symptom,syrup,system,table,tackle,tag,tail,talent,talk,tank,tape,target,task,taste,tattoo,taxi,teach,team,tell,ten,tenant,tennis,tent,term,test,text,thank,that,theme,then,theory,there,they,thing,this,thought,three,thrive,throw,thumb,thunder,ticket,tide,tiger,tilt,timber,time,tiny,tip,tired,tissue,title,toast,tobacco,today,toddler,toe,together,toilet,token,tomato,tomorrow,tone,tongue,tonight,tool,tooth,top,topic,topple,torch,tornado,tortoise,toss,total,tourist,toward,tower,town,toy,track,trade,traffic,tragic,train,transfer,trap,trash,travel,tray,treat,tree,trend,trial,tribe,trick,trigger,trim,trip,trophy,trouble,truck,true,truly,trumpet,trust,truth,try,tube,tuition,tumble,tuna,tunnel,turkey,turn,turtle,twelve,twenty,twice,twin,twist,two,type,typical,ugly,umbrella,unable,unaware,uncle,uncover,under,undo,unfair,unfold,unhappy,uniform,unique,unit,universe,unknown,unlock,until,unusual,unveil,update,upgrade,uphold,upon,upper,upset,urban,urge,usage,use,used,useful,useless,usual,utility,vacant,vacuum,vague,valid,valley,valve,van,vanish,vapor,various,vast,vault,vehicle,velvet,vendor,venture,venue,verb,verify,version,very,vessel,veteran,viable,vibrant,vicious,victory,video,view,village,vintage,violin,virtual,virus,visa,visit,visual,vital,vivid,vocal,voice,void,volcano,volume,vote,voyage,wage,wagon,wait,walk,wall,walnut,want,warfare,warm,warrior,wash,wasp,waste,water,wave,way,wealth,weapon,wear,weasel,weather,web,wedding,weekend,weird,welcome,west,wet,whale,what,wheat,wheel,when,where,whip,whisper,wide,width,wife,wild,will,win,window,wine,wing,wink,winner,winter,wire,wisdom,wise,wish,witness,wolf,woman,wonder,wood,wool,word,work,world,worry,worth,wrap,wreck,wrestle,wrist,write,wrong,yard,year,yellow,you,young,youth,zebra,zero,zone,zoo`;
+            function generatePasswordDoc({
+                creator, creator_email, creator_3rd, creator_3rd_email, 
+                account_name,
+                posting, posting_key,
+                active, active_key,
+                memo, memo_key,
+                owner, owner_key, owner_pub_key
+            }) {
+                var doc = pdfMake.createPdf({
+                    fontSize: 10,
+                    pageMargins: [20, 30, 20, 30],
+                    content: [
+                        {
+                            style: 'subheader',
+                            headlineLevel: 1,
+                            text: '계정 생성 안내사항'
+                        },
+                        {
+                            style: 'text',
+                            text: `이 계정은 아래 사용자를 통해 생성되었으며, 예비자로 지정되었습니다.`
+                        },
+                        {
+                            style: 'text',
+                            ul: [
+                                `@${creator}  / ${creator_email}`,
+                                `@${creator_3rd} / ${creator_3rd_email}`
+                            ]
+                        },
+                        {
+                            style: 'subheader',
+                            headlineLevel: 1,
+                            text: '계정 복구에 대한 안내사항'
+                        },
+                        {
+                            style: 'text',
+                            ul: [
+                                `만일을 대비해 위에 명시된 계정 예비자들은 복구 권한을 나누어서 부여받았습니다.`,
+                                `이에 따라서 소유자가 계정의 비밀번호 분실 시에 이들에게 복구를 요청할 수 있습니다.`,
+                                `계정의 소유자 권한(Owner Key)을 통해서 언제든지 이들에게 부여한 권한을 회수할 수 있습니다.`,
+                                `소유자 권한을 통해 예비자의 권한이 회수된 경우에는 어떠한 개입도 가능하지 않습니다.`,
+                                `예비자들은 계정 복구에 인적자원이 소모되는 경우 자율적으로 비용을 요청할 수 있습니다.`,
+                                `@${creator_3rd}에서는 미리 신원을 증명한 계정에 한해 복구를 지원하고 있습니다.`,
+                            ]
+                        },
+                        {
+                            style: 'subheader',
+                            text: '계정 정보',
+                            headlineLevel: 1,
+                        },
+                        { headlineLevel: 2, style: 'important', bold: true, text: '계정(Account)' },
+                        { style: ['text', 'space'], ul: [account_name] },
+                        { headlineLevel: 2, style: 'important', bold: true, text: '포스팅(Posting)' },
+                        { style: 'text', text: '이 패스워드는 글을 쓰고 투표하는 것에 사용됩니다. 평소에는 이것을 사용하세요.' },
+                        { style: ['text', 'space'], ul: [posting, posting_key] },
+                        { headlineLevel: 2, style: 'important', bold: true, text: '액티브(Active)' },
+                        { style: 'text', text: '이 패스워드는 송금을 하고 계정 정보를 변경하는 것에 사용됩니다. 주의하세요.' },
+                        { style: ['text', 'space'], ul: [active, active_key] },
+                        { headlineLevel: 2, style: 'important', bold: true, text: '메모(Memo)' },
+                        { style: 'text', text: '이 패스워드는 송금 메모를 암호화하거나 암호화된 메모를 확인하는 것에 사용됩니다.' },
+                        { style: ['text', 'space'], ul: [memo, memo_key] },
+                        {
+                            style: ['important'],
+                            text: [
+                                '주의, 패스워드의 관리 권한과 책임은 계정의 소유자에게 있습니다.\n',
+                                '패스워드는 유출되지 않도록 관리하시고, 이 파일 또한 인쇄 후 폐기하시거나, 암호화해서 저장하세요.'
+                            ]
+                        },
+                        {
+                            marginTop: 20,
+                            style: 'text',
+                            text: '다음 페이지에는 계정의 소유권을 증명하는 소유자 권한(Owner Key)이 표시되어있습니다.',
+                            pageBreak: 'after'
+                        },
+                        { headlineLevel: 2, style: 'important', bold: true, text: '소유자' },
+                        {
+                            style: 'text',
+                            text: [
+                                '이 패스워드는 계정의 모든 권한을 가지고 있습니다. 유출되지 않도록 평소에는 사용하지 마세요.\n',
+                                '사용시에는 모든 단어를 공백으로 구분하여 입력하여 주세요. 예) \`word1 word2\` '
+                            ]
+                        },
+                        {
+                            style: ['text', 'space'],
+                            columns: owner.split(' ').slice(0, 6).map(function (str) {
+                                return {
+                                    width: '15%',
+                                    text: str
+                                }
+                            })
+                        },
+                        {
+                            style: ['text', 'space'],
+                            columns: owner.split(' ').slice(6, 12).map(function (str) {
+                                return {
+                                    width: '15%',
+                                    text: str
+                                }
+                            })
+                        },
+                        {
+                            style: ['text', 'space'],
+                            columns: owner.split(' ').slice(12, 18).map(function (str) {
+                                return {
+                                    width: '15%',
+                                    text: str
+                                }
+                            })
+                        },
+                        {
+                            style: ['text', 'space'],
+                            columns: owner.split(' ').slice(18, 24).map(function (str) {
+                                return {
+                                    width: '15%',
+                                    text: str
+                                }
+                            })
+                        },
+                        {
+                            style: ['text', 'space'],
+                            ul: [
+                                '소유자 공개키',
+                                owner_pub_key
+                            ]
+                        },
+                        {
+                            style: ['text', 'space'],
+                            text: ['웹사이트에 소유자 공개키를 확인하면, 최종적으로 계정 생성이 완료됩니다.']
+                        },
+                        {
+                            style: ['text', 'space'],
+                            ul: [
+                                '패스워드 관리의 모든 책임은 계정 소유자에게 있으며 누구도 대신할 수 없습니다.',
+                                '반드시 안전한 패스워드 관리방법을 숙지하세요.'
+                            ]
+                        }
+                    ],
+                    styles: {
+                        text: {
+                            fontSize: 10,
+                            marginTop: 4,
+                            marginBottom: 4,
+                        },
+                        space: {
+                            marginTop: 6,
+                            marginBottom: 6,
+                        },
+                        important: {
+                            fontSize: 12,
+                            bold: true,
+                            marginTop: 4,
+                            marginBottom: 4,
+                        },
+                        subheader: {
+                            fontSize: 18,
+                            bold: true,
+                            marginTop: 12,
+                            marginBottom: 6,
+                        },
+                    }
+                });
+                return doc;
+            }
+
+            async function claimAccount(creator, creator_active_key) {
+                var operations = [
+                    'claim_account',
+                    {
+                        creator,
+                        fee: '0.000 STEEM',
+                    },
+                ]
+                var tx = await steem.broadcast._prepareTransaction({
+                    operations: [operations]
+                });
+                tx = steem.auth.signTransaction(tx, [creator_active_key]);
+                var verify = await steem.api.verifyAuthorityAsync(tx);
+                if (verify) {
+                    if (confirm('계정 할인권을 요청하시겠습니까?')) {
+                        await steem.api.broadcastTransactionSynchronousAsync(tx);
+                        refresh();
+                    }
+                }
+            }
+            async function createAccountAction(creator, account_name, creator_active_key)  {
+
+                var creator_3rd = 'steemkr';
+                var creator_3rd_email = 'ludorum@pm.me'; 
+                var creator_email = prompt('연락처로 남길, 이메일 주소를 입력해주세요');
+
+                var words = WORDS.split(',');
+                var seeds = [];
+                var sep = ' ';
+                (function() {
+                    var buf = new Uint32Array(1);
+                    window.crypto.getRandomValues(buf);
+                })();
+                
+                while(seeds.length < 24) {
+                    var buf = new Uint32Array(1);
+                    window.crypto.getRandomValues(buf);
+                    var ran = buf[0];
+                    var pick = words[buf[0] % words.length];
+                    if (seeds.indexOf(pick) > -1) {
+                        continue;
+                    }
+                    seeds.push(pick);
+                }
+                var posting = seeds.slice(0, 6).join(sep);
+                var active = seeds.slice(0, 12).join(sep);
+                var memo = seeds.slice(0, 12).join(sep);
+                var owner = seeds.slice(0, 24).join(sep);
+                var posting_key = steem.auth.toWif(account_name, posting, 'posting');
+                var active_key = steem.auth.toWif(account_name, active, 'active');
+                var memo_key = steem.auth.toWif(account_name, memo, 'memo');
+                var owner_key = steem.auth.toWif(account_name, owner, 'owner');
+                var owner_pub_key = steem.auth.wifToPublic(owner_key);
+                
+                var doc = generatePasswordDoc({
+                    creator, creator_3rd, creator_3rd_email,
+                    account_name, 
+                    posting, posting_key,
+                    active, active_key,
+                    memo, memo_key,
+                    owner, owner_key, owner_pub_key
+                })
+                var operations = [
+                    'create_claimed_account',
+                    {
+                        creator,
+                        extensions: [],
+                        json_metadata: '',
+                        new_account_name: account_name,
+                        posting: {
+                            weight_threshold: 1,
+                            account_auths: [],
+                            key_auths: [
+                                [steem.auth.wifToPublic(posting_key), 1]
+                            ],
+                        },
+                        active: {
+                            weight_threshold: 1,
+                            account_auths: [],
+                            key_auths: [
+                                [steem.auth.wifToPublic(active_key), 1]
+                            ],
+                        },
+                        memo_key: steem.auth.wifToPublic(memo_key),
+                        owner: {
+                            weight_threshold: 2,
+                            account_auths: [
+                                [creator, 1],
+                                [creator_3rd, 1],
+                            ],
+                            key_auths: [
+                                [steem.auth.wifToPublic(owner_key), 2]
+                            ],
+                        },
+                    },
+                ]
+                var tx = await steem.broadcast._prepareTransaction({
+                    operations: [operations]
+                });
+                tx = steem.auth.signTransaction(tx, [creator_active_key]);
+                var verify = await steem.api.verifyAuthorityAsync(tx);
+                if (verify) {
+                    await doc.download(account_name + '.pdf');
+                    setTimeout(async function() {
+                        if (owner_pub_key == prompt(account_name + '계정을 생성하시려면, 다운로드 받은 파일의 소유자 공개키를 입력해주세요.')) {
+                            await steem.api.broadcastTransactionSynchronousAsync(tx);
+                            alert('계정 생성이 완료되었습니다.');
+                        } else {
+                            alert('공개키가 일치하지 않습니다.');
+                        }
+                    }, 2000);
+                }
             }
             async function refresh() {
                 const { claim_account_cost_sp, claim_account_cost } = await claim_account_price();
@@ -184,16 +420,78 @@
                         $('#account_steem_power_max').text(Number(rc_account_data.max_rc_sp).toFixed(0));
                         $('#account_mana').text(rc_account_data.net_rc);
                         $('#account_mana_perc').text(Number(rc_account_data.net_rc_perc).toFixed(2));
+                        (function(creator) {
                         $('#claim_button')
-                            .attr('href',`https://steemconnect.com/sign/claim_account?creator=${account}&fee=0.000%20STEEM&extensions=[]`)
                             .text(`Claim Account (${account_data.pending_claimed_accounts})`)
-                            .show();
+                            .show()
+                            .off('click')
+                            .on('click', function() {
+                                var $this = $('#claim_button');
+                                if ($this.hasClass('disabled')) {
+                                    return;
+                                }
+                                $this.addClass('disabled');
+                                (async function () {
+                                    var creator_active_key = $('input[name=active_key]').val() || prompt('엑티브 키 또는 마스터 키를 입력하세요');
+                                    if (!creator_active_key) {
+                                        return;
+                                    }
+                                    if (!steem.auth.isWif(creator_active_key)) {
+                                        creator_active_key = steem.auth.toWif(creator, creator_active_key, 'active');
+                                    }
+                                    try {
+                                        console.log(account_data.active.key_auths, steem.auth.wifToPublic(creator_active_key));
+                                        await claimAccount(creator, creator_active_key);
+                                    } catch (e) {
+                                        console.error(e);
+                                        alert(e);
+                                    }
+                                })().finally(function () {
+                                    $this.removeClass('disabled');
+                                });
+                            });
+                        })(account);
+                        (function(creator) {
+                        $('#create_button')
+                            .show()
+                            .off('click')
+                            .on('click', function() {
+                                var $this = $('#create_button');
+                                if ($this.hasClass('disabled')) {
+                                    return;
+                                }
+                                $this.addClass('disabled');
+                                (async function () {
+                                    var account = prompt('생성할 계정 이름을 입력하세요');
+                                    if (!account) {
+                                        return;
+                                    }
+                                    var creator_active_key = $('input[name=active_key]').val() || prompt('엑티브 키 또는 마스터 키를 입력하세요');
+                                    if (!creator_active_key) {
+                                        return;
+                                    }
+                                    if (!steem.auth.isWif(creator_active_key)) {
+                                        creator_active_key = steem.auth.toWif(creator, creator_active_key, 'active');
+                                    }
+                                    try {
+                                        console.log(account_data.active.key_auths, steem.auth.wifToPublic(creator_active_key));
+                                        await createAccountAction(creator, account, creator_active_key);
+                                    } catch (e) {
+                                        console.error(e);
+                                        alert(e);
+                                    }
+                                })().finally(function() {
+                                    $this.removeClass('disabled');
+                                });
+                            })
+                        })(account);
                     } else {
                         account = null;
                     }
                 }
                 if (!account) {
                     $('#claim_button').hide();
+                    $('#create_button').hide();
                 }
                 setTimeout(refresh, 5 * 1e3);
             }
@@ -268,7 +566,11 @@
                             <span id="account_mana">...</span>
                             <span id="account_mana_unit">MANA</span>
                         </p>
+                        <p class="card-text">
+                            <input type="password" id="active_key" class="form-control" name="active_key" placeholder="Input your active key or password">
+                        </p>
                         <a id="claim_button" target="_blank" class="card-link" style="display: none;">Claim Token</a>
+                        <a id="create_button" target="_blank" class="card-link" style="display: none;">Create Account</a>
                     </div>
                 </div>
                 </div>
